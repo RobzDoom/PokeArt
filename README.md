@@ -29,6 +29,24 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Seeding Data
+
+The project includes a seed script at `scripts/seed.js` that expects a local `.env.local` file in the project root.
+
+1. Copy the example env file:
+
+```bash
+Copy-Item .env.local.example .env.local
+```
+
+2. Fill in your Supabase values in `.env.local`.
+
+3. Run the seed script from the project root:
+
+```bash
+node --env-file=.env.local scripts/seed.js
+```
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

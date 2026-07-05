@@ -1,11 +1,10 @@
 const { createClient } = require('@supabase/supabase-js');
 
-// Pulls automatically from your secure local .env.local file
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error("❌ Missing Supabase environment variables in .env.local");
+  console.error('Missing Supabase environment variables: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
 }
 
@@ -15,9 +14,11 @@ async function seedPokemonData() {
   console.log('🚀 Starting data ingestion from TCGdex...');
 
   try {
-    // Testing with a modern, beautifully illustrated set: Scarlet & Violet Base ('sv1')
-    const setId = 'sv3pt5'; 
+    // TCGdex set ID for Scarlet & Violet 151
+    const setId = 'sv03.5'; 
     const response = await fetch(`https://api.tcgdex.net/v2/en/sets/${setId}`);
+    //test
+    console.log(`Fetched set data for set ID: ${setId}`);
     
     if (!response.ok) throw new Error(`TCGdex API error: ${response.statusText}`);
     
