@@ -70,7 +70,7 @@ async function seedPokemonData() {
           id: cardData.id,
           name: cardData.name,
           rarity: cardData.rarity || 'Common',
-          image_url: cardData.image ? `${cardData.image}/high.png` : null,
+          image_url: cardData.image ? `${cardData.image}/high.webp` : null,
           artist_id: artist.id,
           set_id: setData.id,
           type: cardData.types ? cardData.types[0] : null

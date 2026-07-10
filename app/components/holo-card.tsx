@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 import Image from 'next/image';
+import { getCardTheme } from './card-theme';
 
 interface CardProps {
   card: {
@@ -17,6 +18,7 @@ interface CardProps {
 
 export default function HoloCard({ card, onClick }: CardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const theme = getCardTheme(card.rarity);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const cardEl = cardRef.current;
@@ -51,18 +53,26 @@ export default function HoloCard({ card, onClick }: CardProps) {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border border-white/10 bg-[rgba(10,16,35,0.72)] p-3 shadow-[0_16px_45px_rgba(0,0,0,0.28)] ring-1 ring-inset ring-white/5 transition-all duration-200 ease-out will-change-transform hover:border-amber-300/40 hover:shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+      style={{
+        backgroundColor: theme.surface,
+        borderColor: theme.border,
+        boxShadow: `0 16px 45px rgba(0, 0, 0, 0.28), 0 0 0 1px ${theme.border}`,
+      }}
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border p-3 shadow-[0_16px_45px_rgba(0,0,0,0.28)] ring-1 ring-inset ring-white/5 transition-all duration-200 ease-out will-change-transform hover:shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-xl"
     >
       {/* Interactive Foil/Holo Glare Sheet */}
       <div 
         className="absolute inset-0 pointer-events-none mix-blend-screen opacity-0 transition-opacity duration-300 group-hover:opacity-100 z-10" 
         style={{
-          background: 'radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.18) 0%, rgba(255,183,0,0.08) 28%, transparent 62%)'
+          background: `radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.18) 0%, ${theme.accentSoft} 28%, transparent 62%)`
         }}
       />
 
       {/* Optimized Next/Image Wrapper */}
-      <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-slate-950/85 select-none">
+      <div
+        className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl border select-none"
+        style={{ backgroundColor: 'rgba(2, 6, 23, 0.78)', borderColor: theme.border }}
+      >
         {card.image_url ? (
           <Image
             src={card.image_url}
@@ -79,20 +89,27 @@ export default function HoloCard({ card, onClick }: CardProps) {
       {/* Typography Metadata Layer */}
       <div className="mt-4 flex flex-col flex-grow justify-between z-20">
         <div>
-          <h3 className="truncate text-sm font-bold text-slate-50 transition duration-200 md:text-base group-hover:text-amber-300">
+          <h3 className="truncate text-sm font-bold text-slate-50 transition duration-200 md:text-base" style={{ color: theme.accent }}>
             {card.name}
           </h3>
-          <p className="mt-0.5 text-xs font-medium tracking-wide text-amber-300/90">
+          <p className="mt-0.5 text-xs font-medium tracking-wide" style={{ color: theme.accent }}>
             🎨 {card.artist_name || 'Unknown Illustrator'}
           </p>
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-2">
-          <span className="max-w-[70px] truncate text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="mt-3 flex items-center justify-between border-t pt-2" style={{ borderTopColor: theme.border }}>
+          <span className="max-w-[70px] truncate text-[10px] font-bold uppercase tracking-wider" style={{ color: theme.accent }}>
             {card.rarity}
           </span>
           {card.type && (
-            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-slate-200">
+            <span
+              className="rounded-full border px-2 py-0.5 text-[10px] font-bold"
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.accentSoft,
+                color: theme.accent,
+              }}
+            >
               {card.type}
             </span>
           )}
