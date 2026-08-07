@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "node scripts/seed.js",
+    "seed:all": "node scripts/seed_all.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
