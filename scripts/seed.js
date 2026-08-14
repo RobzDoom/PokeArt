@@ -46,46 +46,49 @@ async function seedPokemonData() {
       if (!cardResponse.ok) continue;
       
       const cardData = await cardResponse.json();
-      const illustratorName = cardData.illustrator;
+      const illustratorName = cardData.illustrator?.trim() || null;
 
-      if (illustratorName) {
-        // Find or create the artist record
-        let { data: artist } = await supabase
+      if (!illustratorName) {
+        console.log(`⚠️ Skipping card without illustrator: ${cardData.name}`);
+        continue;
+      }
+
+      // Find or create the artist record
+      let { data: artist } = await supabase
+        .from('artists')
+        .select('id')
+        .eq('name_en', illustratorName)
+        .maybeSingle();
+
+      if (!artist) {
+        const { data: newArtist, error: artistErr } = await supabase
           .from('artists')
+          .insert({ name_en: illustratorName })
           .select('id')
-          .eq('name_en', illustratorName)
-          .maybeSingle();
-
-        if (!artist) {
-          const { data: newArtist, error: artistErr } = await supabase
-            .from('artists')
-            .insert({ name_en: illustratorName })
-            .select('id')
-            .single();
-          
-          if (artistErr) {
-            console.error(`❌ Error inserting artist ${illustratorName}:`, artistErr);
-            continue;
-          }
-          artist = newArtist;
+          .single();
+        
+        if (artistErr) {
+          console.error(`❌ Error inserting artist ${illustratorName}:`, artistErr);
+          continue;
         }
+        artist = newArtist;
+      }
 
-        // 3. Now insert the card, mapping the type column and artist foreign key
-        const { error: cardErr } = await supabase.from('cards').upsert({
-          id: cardData.id,
-          name: cardData.name,
-          rarity: cardData.rarity || 'Common',
-          image_url: cardData.image ? `${cardData.image}/high.webp` : null,
-          artist_id: artist.id,
-          set_id: setData.id,
-          type: cardData.types ? cardData.types[0] : null
-        });
+      // 3. Now insert the card, mapping the type column and artist foreign key
+      const { error: cardErr } = await supabase.from('cards').upsert({
+        id: cardData.id,
+        name: cardData.name,
+        rarity: cardData.rarity || 'Common',
+        image_url: cardData.image ? `${cardData.image}/high.webp` : null,
+        artist_id: artist.id,
+        set_id: setData.id,
+        type: cardData.types ? cardData.types[0] : null
+      });
 
-        if (cardErr) {
-          console.error(`❌ Error inserting card ${cardData.name}:`, cardErr);
-        } else {
-          console.log(`✅ Synced: ${cardData.name} (${illustratorName})`);
-        }
+      if (cardErr) {
+        console.error(`❌ Error inserting card ${cardData.name}:`, cardErr);
+      } else {
+        console.log(`✅ Synced: ${cardData.name} (${illustratorName})`);
       }
     }
 

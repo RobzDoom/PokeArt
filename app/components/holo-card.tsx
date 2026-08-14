@@ -9,8 +9,8 @@ interface CardProps {
     id: string;
     name: string;
     rarity: string;
-    image_url: string;
-    type: string;
+    image_url: string | null;
+    type: string | null;
     artist_name: string;
   };
   onClick?: () => void;

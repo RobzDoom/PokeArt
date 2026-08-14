@@ -3,7 +3,6 @@ const path = require('path');
 const { loadEnvConfig } = require('@next/env');
 const { createClient } = require('@supabase/supabase-js');
 
-// Synchronize environment variables using Next.js config loader
 const projectRoot = path.resolve(__dirname, '..');
 loadEnvConfig(projectRoot);
 
@@ -16,78 +15,119 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function getOrCreateArtist(illustratorName) {
+  const normalized = typeof illustratorName === 'string' ? illustratorName.trim() : '';
+
+  if (!normalized || normalized.toLowerCase() === 'unknown') {
+    return null;
+  }
+
+  let { data: artist, error: artistLookupError } = await supabase
+    .from('artists')
+    .select('id')
+    .eq('name_en', normalized)
+    .maybeSingle();
+
+  if (artistLookupError) {
+    throw artistLookupError;
+  }
+
+  if (artist) {
+    return artist.id;
+  }
+
+  const { data: newArtist, error: artistInsertError } = await supabase
+    .from('artists')
+    .insert({ name_en: normalized })
+    .select('id')
+    .single();
+
+  if (artistInsertError) {
+    throw artistInsertError;
+  }
+
+  return newArtist.id;
+}
 
 async function seedAllCardsOptimized() {
-  console.log('🚀 Starting optimized set-by-set card ingestion...');
+  console.log('🚀 Starting full card ingestion for all sets...');
 
   try {
-    // 1. Read the fully populated card_sets table
     const { data: sets, error: setsErr } = await supabase.from('card_sets').select('id, name');
     if (setsErr) throw setsErr;
 
-    console.log(`📂 Processing cards for ${sets.length} total sets sequentially...`);
+    if (!sets || sets.length === 0) {
+      console.log('No sets found in card_sets table. Fetching all set metadata from TCGdex...');
 
-    for (const currentSet of sets) {
+      const setListResponse = await fetch('https://api.tcgdex.net/v2/en/sets');
+      if (!setListResponse.ok) {
+        throw new Error(`TCGdex set list failed: ${setListResponse.statusText}`);
+      }
+
+      const setList = await setListResponse.json();
+      for (const set of setList) {
+        await supabase.from('card_sets').upsert({
+          id: set.id,
+          name: set.name,
+          series: set.series || null,
+        });
+      }
+    }
+
+    const { data: refreshedSets, error: refreshedSetsErr } = await supabase.from('card_sets').select('id, name');
+    if (refreshedSetsErr) throw refreshedSetsErr;
+
+    console.log(`📂 Processing cards for ${refreshedSets.length} total sets sequentially...`);
+
+    for (const currentSet of refreshedSets) {
       console.log(`\n📥 Fetching full details for set: ${currentSet.name} (${currentSet.id})...`);
-      
+
       const url = `https://api.tcgdex.net/v2/en/sets/${currentSet.id}`;
       try {
         const response = await fetch(url);
         if (!response.ok) {
-          console.log(`❌ API Rejected [Status ${response.status}] for set ID: ${currentSet.id} (URL: ${url})`);
+          console.log(`❌ API Rejected [Status ${response.status}] for set ID: ${currentSet.id}`);
           continue;
         }
 
         const setData = await response.json();
-        const cardsArray = setData.cards;
+        const cardsSummary = Array.isArray(setData.cards) ? setData.cards : [];
 
-        if (!cardsArray || cardsArray.length === 0) {
+        if (!cardsSummary.length) {
           console.log(`⚠️ No cards found in set ${currentSet.name}.`);
           continue;
         }
 
-        console.log(`📸 Found ${cardsArray.length} cards. Syncing artists and card records...`);
+        console.log(`📸 Found ${cardsSummary.length} cards. Fetching individual card details...`);
 
-        // 2. Process every card inside this set
-        for (const card of cardsArray) {
-          // Fallback gracefully if the API hasn't mapped an illustrator for this card yet
-          const illustratorName = card.illustrator || 'Unknown';
+        for (const cardSummary of cardsSummary) {
+          const cardRes = await fetch(`https://api.tcgdex.net/v2/en/cards/${cardSummary.id}`);
+          if (!cardRes.ok) continue;
 
-          // Find or create the artist record
-          let { data: artist } = await supabase
-            .from('artists')
-            .select('id')
-            .eq('name_en', illustratorName)
-            .maybeSingle();
+          const card = await cardRes.json();
+          const illustratorName = typeof card.illustrator === 'string' ? card.illustrator.trim() : '';
+          const rarity = typeof card.rarity === 'string' && card.rarity.trim() ? card.rarity.trim() : null;
+          const typeValue = Array.isArray(card.types) && card.types.length ? card.types[0] : null;
+          const imageUrl = card.image ? `${card.image}/high.webp` : null;
+          const artistId = await getOrCreateArtist(illustratorName);
 
-          if (!artist) {
-            const { data: newArtist, error: artistErr } = await supabase
-              .from('artists')
-              .insert({ name_en: illustratorName })
-              .select('id')
-              .single();
-            
-            if (artistErr) {
-              console.error(`❌ Error creating artist [${illustratorName}]:`, artistErr.message);
-              continue;
-            }
-            artist = newArtist;
-          }
-
-          // Upsert the card with image URLs and mapped artist IDs
           const { error: cardErr } = await supabase.from('cards').upsert({
             id: card.id,
-            name: card.name,
-            image_url: card.image ? `${card.image}/high.webp` : null,
-            artist_id: artist.id,
+            name: card.name || cardSummary.name || 'Unknown Card',
+            image_url: imageUrl,
+            artist_id: artistId,
             set_id: currentSet.id,
-            rarity: card.rarity || 'Common'
-          });
+            rarity,
+            type: typeValue,
+          }, { onConflict: 'id' });
 
           if (cardErr) {
-            console.error(`❌ Database rejected card [${card.name}] in set [${currentSet.id}]:`, cardErr.message);
+            console.error(`❌ Database rejected card [${card.name || cardSummary.name}] in set [${currentSet.id}]:`, cardErr.message);
           }
+
+          await delay(35);
         }
 
         console.log(`✅ Finished processing set: ${currentSet.name}`);
@@ -95,7 +135,6 @@ async function seedAllCardsOptimized() {
         console.error(`💥 Network/Timeout error fetching set ${currentSet.id}:`, fetchErr.message);
       }
 
-      // Brief sleep interval to keep connection lanes completely clear
       await delay(200);
     }
 
