@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
-import GalleryClient, { type Card } from './components/gallery-client';
+import { HomePage, type Card } from './components/home-page';
 
 async function getCardsForSet(setId: string): Promise<Card[]> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
+    console.log('Missing Supabase config for server page');
     return [];
   }
 
@@ -25,6 +26,7 @@ async function getCardsForSet(setId: string): Promise<Card[]> {
     .order('id', { ascending: true });
 
   if (error || !data) {
+    console.log('Supabase query error for set', setId, error);
     return [];
   }
 
@@ -42,5 +44,5 @@ async function getCardsForSet(setId: string): Promise<Card[]> {
 
 export default async function Home() {
   const cards = await getCardsForSet('sv03.5');
-  return <GalleryClient initialCards={cards} />;
+  return <HomePage cards={cards} />;
 }
