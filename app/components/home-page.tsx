@@ -37,8 +37,8 @@ export function HomePage({ cards }: { cards: Card[] }) {
               <a href="#collection" className="rounded-full bg-gradient-to-r from-yellow-300 via-amber-400 to-red-400 px-6 py-3 text-sm font-bold text-slate-950 shadow-[0_18px_50px_rgba(255,213,74,0.28)] transition hover:scale-[1.02]">
                 View Collection
               </a>
-              <a href="#artists" className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/40 hover:bg-white/10">
-                Meet the Artists
+              <a href="/sets" className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/40 hover:bg-white/10">
+                Browse Sets
               </a>
             </div>
           </div>
@@ -93,8 +93,8 @@ export function HomePage({ cards }: { cards: Card[] }) {
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-100/75">Collection</p>
               <h3 className="mt-2 text-3xl font-black tracking-tight text-white">Recent cards</h3>
             </div>
-            <a href="#" className="text-sm font-semibold text-cyan-200 transition hover:text-white">
-              View all →
+            <a href="/sets" className="text-sm font-semibold text-cyan-200 transition hover:text-white">
+              View all sets →
             </a>
           </div>
 

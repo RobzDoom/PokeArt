@@ -1,0 +1,173 @@
+'use client';
+
+import Image from 'next/image';
+import { useMemo, useState } from 'react';
+import { getCardTheme } from './card-theme';
+
+export interface CardRow {
+  id: string;
+  name: string;
+  image_url: string | null;
+  rarity: string | null;
+  type: string | null;
+  artist_name?: string | null;
+}
+
+interface SetCardFilterProps {
+  cards: CardRow[];
+}
+
+export function SetCardFilter({ cards }: SetCardFilterProps) {
+  const [search, setSearch] = useState('');
+  const [rarity, setRarity] = useState('All');
+  const [type, setType] = useState('All');
+
+  const rarityOptions = useMemo(() => {
+    const values = new Set(cards.map((card) => card.rarity).filter(Boolean) as string[]);
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [cards]);
+
+  const typeOptions = useMemo(() => {
+    const values = new Set(cards.map((card) => card.type).filter(Boolean) as string[]);
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [cards]);
+
+  const filteredCards = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return cards.filter((card) => {
+      const matchesSearch = !query || card.name.toLowerCase().includes(query);
+      const matchesRarity = rarity === 'All' || (card.rarity ?? 'Common') === rarity;
+      const matchesType = type === 'All' || (card.type ?? '').toLowerCase() === type.toLowerCase();
+
+      return matchesSearch && matchesRarity && matchesType;
+    });
+  }, [cards, search, rarity, type]);
+
+  const resetFilters = () => {
+    setSearch('');
+    setRarity('All');
+    setType('All');
+  };
+
+  return (
+    <>
+      <div className="mb-8 flex flex-col gap-3 rounded-3xl border border-white/10 bg-slate-900/60 p-4 backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search cards"
+            className="w-full rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 text-sm text-white placeholder:text-slate-400 outline-none ring-0 transition focus:border-cyan-300/60 md:max-w-xs"
+          />
+
+          <div className="relative w-full md:max-w-[220px]">
+            <select
+              value={rarity}
+              onChange={(event) => setRarity(event.target.value)}
+              className="w-full appearance-none rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 pr-12 text-sm text-white outline-none transition focus:border-cyan-300/60"
+            >
+              <option value="All">All rarities</option>
+              {rarityOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-base text-slate-300">▾</span>
+          </div>
+
+          <div className="relative w-full md:max-w-[220px]">
+            <select
+              value={type}
+              onChange={(event) => setType(event.target.value)}
+              className="w-full appearance-none rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 pr-12 text-sm text-white outline-none transition focus:border-cyan-300/60"
+            >
+              <option value="All">All types</option>
+              {typeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-base text-slate-300">▾</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-slate-300">{filteredCards.length} visible</span>
+          {(search || rarity !== 'All' || type !== 'All') && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white transition hover:border-cyan-300/40 hover:bg-white/10"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      </div>
+
+      {filteredCards.length === 0 ? (
+        <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-8 text-slate-300">
+          No cards match those filters.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          {filteredCards.map((card) => {
+            const theme = getCardTheme(card.rarity ?? 'Common');
+
+            return (
+              <article
+                key={card.id}
+                className="group relative overflow-hidden rounded-2xl border p-3 shadow-[0_20px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl transition hover:-translate-y-1"
+                style={{
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
+                  boxShadow: `0 20px 60px rgba(0,0,0,0.22), 0 0 0 1px ${theme.border}`,
+                }}
+              >
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background: `radial-gradient(circle at 50% 20%, ${theme.accentGlow} 0%, transparent 52%)`,
+                  }}
+                />
+
+                <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-slate-950/80">
+                  {card.image_url ? (
+                    <Image
+                      src={card.image_url}
+                      alt={card.name}
+                      fill
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
+                      className="object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-slate-500">No image</div>
+                  )}
+                </div>
+
+                <div className="relative mt-3 z-10">
+                  <p className="truncate text-sm font-bold text-white" style={{ color: theme.accent }}>
+                    {card.name}
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-400" style={{ color: theme.accent }}>
+                    {card.artist_name}
+                  </p>
+                  <div
+                    className="mt-3 flex items-center justify-between border-t pt-2 text-[10px] font-bold uppercase tracking-[0.2em]"
+                    style={{ borderTopColor: theme.border, color: theme.accent }}
+                  >
+                    <span>{card.rarity}</span>
+                    {card.type && <span>{card.type}</span>}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+}

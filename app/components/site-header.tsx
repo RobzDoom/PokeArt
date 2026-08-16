@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/65 backdrop-blur-xl">
@@ -17,14 +19,17 @@ export function SiteHeader() {
         </div>
 
         <nav className="hidden items-center gap-8 text-sm text-slate-200/80 md:flex">
-          <a href="#featured" className="transition hover:text-white">Featured</a>
-          <a href="#collection" className="transition hover:text-white">Collection</a>
+          <Link href="/" className="transition hover:text-white">Featured</Link>
+          <Link href="/sets" className="transition hover:text-white">Sets</Link>
           <a href="#artists" className="transition hover:text-white">Artists</a>
         </nav>
 
-        <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/40 hover:bg-white/10">
-          Explore Set
-        </button>
+        <Link
+          href="/sets"
+          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-cyan-300/40 hover:bg-white/10"
+        >
+          Explore Sets
+        </Link>
       </div>
     </header>
   );

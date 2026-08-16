@@ -113,6 +113,10 @@ async function seedAllCardsOptimized() {
           const imageUrl = card.image ? `${card.image}/high.webp` : null;
           const artistId = await getOrCreateArtist(illustratorName);
 
+          const rawLocalId = card.localId ?? card.number ?? null;
+          const safeLocalId = rawLocalId === null || rawLocalId === '' ? null : String(rawLocalId).trim();
+          const cardNumber = safeLocalId === null ? null : Number(String(safeLocalId).replace(/[^0-9]/g, '')) || null;
+
           const { error: cardErr } = await supabase.from('cards').upsert({
             id: card.id,
             name: card.name || cardSummary.name || 'Unknown Card',
@@ -121,6 +125,8 @@ async function seedAllCardsOptimized() {
             set_id: currentSet.id,
             rarity,
             type: typeValue,
+            local_id: safeLocalId,
+            card_number: cardNumber,
           }, { onConflict: 'id' });
 
           if (cardErr) {
