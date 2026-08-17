@@ -29,9 +29,12 @@ html {
 }
 
 body {
-  background:
-    linear-gradient(180deg, rgba(4, 8, 15, 0.28), rgba(4, 8, 15, 0.38)),
-    url("../public/pokeNatureWallpaper.jpg") center center / cover no-repeat fixed;
+  background-color: #030712;
+  background-image: url("/pokeNatureWallpaper.jpg");
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   min-height: 100vh;
 }
 

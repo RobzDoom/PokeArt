@@ -21,7 +21,7 @@ export function SiteHeader() {
         <nav className="hidden items-center gap-8 text-sm text-slate-200/80 md:flex">
           <Link href="/" className="transition hover:text-white">Featured</Link>
           <Link href="/sets" className="transition hover:text-white">Sets</Link>
-          <a href="#artists" className="transition hover:text-white">Artists</a>
+          <Link href="/artists" className="transition hover:text-white">Artists</Link>
         </nav>
 
         <Link
