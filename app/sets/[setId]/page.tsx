@@ -24,7 +24,8 @@ async function getSetCards(setId: string): Promise<CardRow[]> {
       image_url,
       type,
       card_number,
-      artist:artists ( name_en )
+      artist:artists ( name_en ),
+      set:card_sets ( id, name, series )
     `)
     .eq('set_id', setId)
     .order('card_number', { ascending: true })
@@ -41,9 +42,16 @@ async function getSetCards(setId: string): Promise<CardRow[]> {
     image_url: card.image_url,
     rarity: card.rarity ?? 'Common',
     type: card.type,
+    card_number: card.card_number,
     artist_name: Array.isArray(card.artist)
       ? card.artist[0]?.name_en ?? 'Unknown Artist'
       : card.artist?.name_en ?? 'Unknown Artist',
+    set_name: Array.isArray(card.set)
+      ? card.set[0]?.name ?? null
+      : card.set?.name ?? null,
+    set_series: Array.isArray(card.set)
+      ? card.set[0]?.series ?? null
+      : card.set?.series ?? null,
   }));
 }
 
@@ -73,10 +81,10 @@ export default async function SetDetailPage({ params }: { params: Promise<{ setI
   const setMeta = await getSetMeta(setId);
 
   return (
-    <div className="min-h-screen text-slate-100">
+    <div className="flex min-h-screen flex-col text-slate-100">
       <SiteHeader />
 
-      <main className="mx-auto max-w-7xl px-4 py-12 md:px-8">
+      <main className="mx-auto max-w-7xl flex-1 px-4 py-12 md:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.32em] text-cyan-100/80">{setMeta.series ?? 'Set'}</p>

@@ -67,10 +67,10 @@ export default async function ArtistDetailPage({ params }: { params: Promise<{ a
   const cards = await getArtistCards(artistId);
 
   return (
-    <div className="min-h-screen text-slate-100">
+    <div className="flex min-h-screen flex-col text-slate-100">
       <SiteHeader />
 
-      <main className="mx-auto max-w-7xl px-4 py-12 md:px-8">
+      <main className="mx-auto max-w-7xl flex-1 px-4 py-12 md:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.32em] text-cyan-100/80">Artist</p>

@@ -4,17 +4,20 @@ import { useEffect } from 'react';
 import Image from 'next/image';
 import { getCardTheme } from './card-theme';
 
-interface Card {
+export interface CardLightboxCard {
   id: string;
   name: string;
   rarity: string;
   image_url: string | null;
   type: string | null;
-  artist_name: string;
+  artist_name?: string | null;
+  set_name?: string | null;
+  set_series?: string | null;
+  card_number?: number | string | null;
 }
 
 interface CardLightboxProps {
-  card: Card;
+  card: CardLightboxCard;
   onClose: () => void;
 }
 
@@ -87,7 +90,7 @@ export default function CardLightbox({ card, onClose }: CardLightboxProps) {
                 {card.name}
               </h2>
               <p className="mt-2 text-sm text-slate-300" style={{ color: theme.accent }}>
-                🎨 {card.artist_name}
+                🎨 {card.artist_name ?? 'Unknown Artist'}
               </p>
             </div>
 
@@ -100,6 +103,24 @@ export default function CardLightbox({ card, onClose }: CardLightboxProps) {
                 <div className="flex items-center justify-between gap-4 border-b pb-3" style={{ borderColor: theme.border }}>
                   <span className="text-slate-400">Type</span>
                   <span style={{ color: theme.accent }}>{card.type}</span>
+                </div>
+              )}
+              {card.card_number !== null && card.card_number !== undefined && (
+                <div className="flex items-center justify-between gap-4 border-b pb-3" style={{ borderColor: theme.border }}>
+                  <span className="text-slate-400">Card #</span>
+                  <span style={{ color: theme.accent }}>{card.card_number}</span>
+                </div>
+              )}
+              {card.set_name && (
+                <div className="flex items-center justify-between gap-4 border-b pb-3" style={{ borderColor: theme.border }}>
+                  <span className="text-slate-400">Set</span>
+                  <span style={{ color: theme.accent }}>{card.set_name}</span>
+                </div>
+              )}
+              {card.set_series && (
+                <div className="flex items-center justify-between gap-4 border-b pb-3" style={{ borderColor: theme.border }}>
+                  <span className="text-slate-400">Series</span>
+                  <span style={{ color: theme.accent }}>{card.set_series}</span>
                 </div>
               )}
             </div>

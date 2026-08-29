@@ -43,10 +43,10 @@ export default async function ArtistsPage() {
   const artists = await getArtists();
 
   return (
-    <div className="min-h-screen text-slate-100">
+    <div className="flex min-h-screen flex-col text-slate-100">
       <SiteHeader />
 
-      <main className="mx-auto max-w-7xl px-4 py-12 md:px-8">
+      <main className="mx-auto max-w-7xl flex-1 px-4 py-12 md:px-8">
         <div className="mb-8">
           <p className="text-xs font-bold uppercase tracking-[0.32em] text-cyan-100/80">Featured talent</p>
           <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">All artists</h1>

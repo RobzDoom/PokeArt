@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
+import CardLightbox, { type CardLightboxCard } from './card-lightbox';
 import { getCardTheme } from './card-theme';
 
 export interface CardRow {
@@ -11,6 +12,9 @@ export interface CardRow {
   rarity: string | null;
   type: string | null;
   artist_name?: string | null;
+  card_number?: number | string | null;
+  set_name?: string | null;
+  set_series?: string | null;
 }
 
 interface SetCardFilterProps {
@@ -21,6 +25,7 @@ export function SetCardFilter({ cards }: SetCardFilterProps) {
   const [search, setSearch] = useState('');
   const [rarity, setRarity] = useState('All');
   const [type, setType] = useState('All');
+  const [selectedCard, setSelectedCard] = useState<CardLightboxCard | null>(null);
 
   const rarityOptions = useMemo(() => {
     const values = new Set(cards.map((card) => card.rarity).filter(Boolean) as string[]);
@@ -120,7 +125,18 @@ export function SetCardFilter({ cards }: SetCardFilterProps) {
             return (
               <article
                 key={card.id}
-                className="group relative overflow-hidden rounded-2xl border p-3 shadow-[0_20px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl transition hover:-translate-y-1"
+                onClick={() => setSelectedCard({
+                  id: card.id,
+                  name: card.name,
+                  rarity: card.rarity ?? 'Common',
+                  image_url: card.image_url,
+                  type: card.type,
+                  artist_name: card.artist_name ?? null,
+                  card_number: card.card_number ?? null,
+                  set_name: card.set_name ?? null,
+                  set_series: card.set_series ?? null,
+                })}
+                className="group relative cursor-pointer overflow-hidden rounded-2xl border p-3 shadow-[0_20px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl transition hover:-translate-y-1"
                 style={{
                   backgroundColor: theme.surface,
                   borderColor: theme.border,
@@ -167,6 +183,13 @@ export function SetCardFilter({ cards }: SetCardFilterProps) {
             );
           })}
         </div>
+      )}
+
+      {selectedCard && (
+        <CardLightbox
+          card={selectedCard}
+          onClose={() => setSelectedCard(null)}
+        />
       )}
     </>
   );

@@ -17,10 +17,10 @@ export function HomePage({ cards }: { cards: Card[] }) {
   const galleryCards = cards.slice(0, 12);
 
   return (
-    <div className="min-h-screen text-slate-100">
+    <div className="flex min-h-screen flex-col text-slate-100">
       <SiteHeader />
 
-      <main className="mx-auto max-w-7xl px-4 pb-20 pt-10 md:px-8">
+      <main className="mx-auto max-w-7xl flex-1 px-4 pb-20 pt-10 md:px-8">
         <section id="featured" className="grid gap-10 pb-18 pt-8 md:grid-cols-[1.1fr_0.9fr] md:items-center">
           <div>
             <p className="inline-flex items-center rounded-full border border-yellow-300/30 bg-yellow-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.28em] text-yellow-100">
