@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
+import { ArtistSearch } from '../components/artist-search';
 import { SiteFooter } from '../components/site-footer';
 import { SiteHeader } from '../components/site-header';
 
@@ -57,34 +57,7 @@ export default async function ArtistsPage() {
             No artists are available yet.
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {artists.map((artist) => (
-              <Link
-                key={artist.id}
-                href={`/artists/${encodeURIComponent(artist.id)}`}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl transition hover:-translate-y-1 hover:border-cyan-300/40"
-              >
-                <div className="relative">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-100/70">Artist</p>
-                      <h2 className="mt-2 text-2xl font-black text-white">{artist.name_en}</h2>
-                    </div>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-200">
-                      {artist.card_count ?? 0} cards
-                    </span>
-                  </div>
-
-                  <div className="mt-6 h-1.5 rounded-full bg-gradient-to-r from-cyan-400/80 via-blue-400/60 to-transparent" />
-
-                  <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-sm text-slate-300">
-                    <span>Total cards worked: {artist.card_count ?? 0}</span>
-                    <span>View profile →</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <ArtistSearch artists={artists} />
         )}
       </main>
 

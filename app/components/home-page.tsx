@@ -1,5 +1,9 @@
+'use client';
+
 import Image from 'next/image';
+import { useState } from 'react';
 import { getCardTheme } from './card-theme';
+import CardLightbox, { type CardLightboxCard } from './card-lightbox';
 import { SiteHeader } from './site-header';
 import { SiteFooter } from './site-footer';
 
@@ -10,11 +14,34 @@ export interface Card {
   image_url: string | null;
   type: string | null;
   artist_name: string;
+  card_number?: number | string | null;
+  set_name?: string | null;
+  set_series?: string | null;
 }
 
-export function HomePage({ cards }: { cards: Card[] }) {
-  const featuredCard = cards[0] ?? null;
+interface HomePageProps {
+  cards: Card[];
+  featuredCard: Card | null;
+}
+
+export function HomePage({ cards, featuredCard }: HomePageProps) {
+  const featuredTheme = featuredCard ? getCardTheme(featuredCard.rarity) : null;
   const galleryCards = cards.slice(0, 12);
+  const [selectedCard, setSelectedCard] = useState<CardLightboxCard | null>(null);
+
+  const openCard = (card: Card) => {
+    setSelectedCard({
+      id: card.id,
+      name: card.name,
+      rarity: card.rarity,
+      image_url: card.image_url,
+      type: card.type,
+      artist_name: card.artist_name,
+      card_number: card.card_number,
+      set_name: card.set_name,
+      set_series: card.set_series,
+    });
+  };
 
   return (
     <div className="flex min-h-screen flex-col text-slate-100">
@@ -34,9 +61,9 @@ export function HomePage({ cards }: { cards: Card[] }) {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <a href="#collection" className="rounded-full bg-gradient-to-r from-yellow-300 via-amber-400 to-red-400 px-6 py-3 text-sm font-bold text-slate-950 shadow-[0_18px_50px_rgba(255,213,74,0.28)] transition hover:scale-[1.02]">
+              {/* <a href="#collection" className="rounded-full bg-gradient-to-r from-yellow-300 via-amber-400 to-red-400 px-6 py-3 text-sm font-bold text-slate-950 shadow-[0_18px_50px_rgba(255,213,74,0.28)] transition hover:scale-[1.02]">
                 View Collection
-              </a>
+              </a> */}
               <a href="/sets" className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:border-cyan-300/40 hover:bg-white/10">
                 Browse Sets
               </a>
@@ -46,8 +73,20 @@ export function HomePage({ cards }: { cards: Card[] }) {
           <div className="relative">
             <div className="absolute inset-0 -z-10 rounded-[2rem] bg-gradient-to-br from-yellow-300/20 via-cyan-400/10 to-red-400/10 blur-3xl" />
             {featuredCard ? (
-              <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/60 p-4 shadow-[0_30px_100px_rgba(0,0,0,0.38)] backdrop-blur-xl">
-                <div className="relative aspect-[3/4] overflow-hidden rounded-[1.6rem] border border-white/10 bg-slate-950/70">
+              <div
+                className="overflow-hidden rounded-[2rem] border p-4 shadow-[0_30px_100px_rgba(0,0,0,0.38)] backdrop-blur-xl"
+                style={{
+                  backgroundColor: featuredTheme?.accentSoft,
+                  borderColor: featuredTheme?.border,
+                }}
+              >
+                <div
+                  className="relative aspect-[3/4] overflow-hidden rounded-[1.6rem] border"
+                  style={{
+                    backgroundColor: featuredTheme?.accentSoft,
+                    borderColor: featuredTheme?.border,
+                  }}
+                >
                   <Image
                     src={featuredCard.image_url ?? ''}
                     alt={featuredCard.name}
@@ -63,6 +102,7 @@ export function HomePage({ cards }: { cards: Card[] }) {
                   </div>
                   <span className="rounded-full border border-yellow-300/30 bg-yellow-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-yellow-100">
                     {featuredCard.rarity}
+                    <p className="text-sm text-slate-300">{featuredCard.artist_name}</p>
                   </span>
                 </div>
               </div>
@@ -90,8 +130,7 @@ export function HomePage({ cards }: { cards: Card[] }) {
         <section id="collection" className="mt-16">
           <div className="mb-7 flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-100/75">Collection</p>
-              <h3 className="mt-2 text-3xl font-black tracking-tight text-white">Recent cards</h3>
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-100/75">Artist Cards</p>
             </div>
             <a href="/sets" className="text-sm font-semibold text-cyan-200 transition hover:text-white">
               View all sets →
@@ -105,6 +144,15 @@ export function HomePage({ cards }: { cards: Card[] }) {
               return (
                 <article
                   key={card.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openCard(card)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      openCard(card);
+                    }
+                  }}
                   className="group relative overflow-hidden rounded-2xl border p-3 shadow-[0_20px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-1"
                   style={{
                     backgroundColor: theme.surface,
@@ -156,6 +204,13 @@ export function HomePage({ cards }: { cards: Card[] }) {
       </main>
 
       <SiteFooter />
+
+      {selectedCard && (
+        <CardLightbox
+          card={selectedCard}
+          onClose={() => setSelectedCard(null)}
+        />
+      )}
     </div>
   );
 }
