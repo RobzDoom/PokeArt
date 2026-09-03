@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import CardLightbox, { type CardLightboxCard } from './card-lightbox';
 import { getCardTheme } from './card-theme';
+import { parseNaturalLanguageFilter } from '../lib/fallback-card-filter';
 
 export interface CardRow {
   id: string;
@@ -26,6 +27,7 @@ export function SetCardFilter({ cards }: SetCardFilterProps) {
   const [rarity, setRarity] = useState('All');
   const [type, setType] = useState('All');
   const [selectedCard, setSelectedCard] = useState<CardLightboxCard | null>(null);
+  const [prompt, setPrompt] = useState('');
 
   const rarityOptions = useMemo(() => {
     const values = new Set(cards.map((card) => card.rarity).filter(Boolean) as string[]);
@@ -36,6 +38,49 @@ export function SetCardFilter({ cards }: SetCardFilterProps) {
     const values = new Set(cards.map((card) => card.type).filter(Boolean) as string[]);
     return Array.from(values).sort((a, b) => a.localeCompare(b));
   }, [cards]);
+
+  const handlePromptChange = (value: string) => {
+    setPrompt(value);
+  };
+
+  const handleSearch = () => {
+    if (!prompt.trim()) {
+      // Clear all filters if prompt is empty
+      setType('All');
+      setRarity('All');
+      setSearch('');
+      return;
+    }
+
+    // Parse the natural language prompt
+    const filter = parseNaturalLanguageFilter(prompt);
+
+    // Apply parsed filters
+    if (filter.type) {
+      setType(filter.type);
+    } else {
+      setType('All');
+    }
+
+    if (filter.rarity) {
+      setRarity(filter.rarity);
+    } else {
+      setRarity('All');
+    }
+
+    if (filter.search) {
+      setSearch(filter.search);
+    } else {
+      setSearch('');
+    }
+  };
+
+  const handleResetFilters = () => {
+    setPrompt('');
+    setSearch('');
+    setRarity('All');
+    setType('All');
+  };
 
   const filteredCards = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -49,15 +94,36 @@ export function SetCardFilter({ cards }: SetCardFilterProps) {
     });
   }, [cards, search, rarity, type]);
 
-  const resetFilters = () => {
-    setSearch('');
-    setRarity('All');
-    setType('All');
-  };
-
   return (
     <>
-      <div className="mb-8 flex flex-col gap-3 rounded-3xl border border-white/10 bg-slate-900/60 p-4 backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+      <div className="mb-8 flex flex-col gap-3 rounded-3xl border border-white/10 bg-slate-900/60 p-4 backdrop-blur-xl">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="prompt-filter" className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-100/60">
+              Try asking naturally
+            </label>
+            <div className="flex gap-3">
+              <input
+                id="prompt-filter"
+                value={prompt}
+                onChange={(event) => handlePromptChange(event.target.value)}
+                onKeyDown={(event) => event.key === 'Enter' && handleSearch()}
+                placeholder="e.g., 'leaf type', 'rare fire cards', 'electric only'"
+                className="flex-1 rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 text-sm text-white placeholder:text-slate-400 outline-none ring-0 transition focus:border-cyan-300/60"
+              />
+              <button
+                type="button"
+                onClick={handleSearch}
+                className="rounded-full border border-white/10 bg-cyan-600/20 px-5 py-2.5 text-sm font-medium text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-600/30 active:bg-cyan-600/40"
+              >
+                Search
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-px bg-gradient-to-r from-white/5 via-white/10 to-white/5" />
+
         <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
           <input
             value={search}
@@ -101,10 +167,10 @@ export function SetCardFilter({ cards }: SetCardFilterProps) {
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-slate-300">{filteredCards.length} visible</span>
-          {(search || rarity !== 'All' || type !== 'All') && (
+          {(search || rarity !== 'All' || type !== 'All' || prompt) && (
             <button
               type="button"
-              onClick={resetFilters}
+              onClick={handleResetFilters}
               className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white transition hover:border-cyan-300/40 hover:bg-white/10"
             >
               Reset
